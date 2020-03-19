@@ -36,7 +36,15 @@ try:
 except Exception as bind_error:
   raise SystemExit(f"Could not bind server on: {args.host} on port {args.port}.  Error: {bind_error}")
 
+
 def new_client(client, connection):
+  """
+  Handle new client.  Closes connection if client types "exit".
+
+  PARAMS:
+  client -- socket object for a new client
+  connection -- address information for new client (ip, port)
+  """
   ip = connection[0]
   port = connection[1]
   print(f"New connection made from: {ip} with {port}")
