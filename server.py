@@ -15,23 +15,22 @@ import socket
 import argparse # CLI parsing module
 import threading
 
-# Allows us to run our server with host & port arguments
+# Allows us to run our server with port arguments
 parser = argparse.ArgumentParser(description = "Multi-threaded server")
 
-# first argument is --host, expecting 0 or 1 string arguments
-parser.add_argument('--host', metavar = 'host', type = str, nargs = '?', default = "localhost")
-# second argument is --port, expecting 0 or 1 integer arguments
+# argument is --port, expecting 0 or 1 integer arguments
 parser.add_argument('--port', metavar = 'port', type = int, nargs = '?', default = 12000)
 args = parser.parse_args()
 
-print(f"Running server on: {args.host} on port {args.port}")
+host_ip = socket.gethostbyname(socket.gethostname()) # gets network IP of localhost so others can connect
 
+print(f"Running server on: {host_ip} on port {args.port}")
 
 serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # eliminates error when server is ran again immediately after a close
 
 try:
-  serverSocket.bind((args.host, args.port))
+  serverSocket.bind(("", args.port))
   serverSocket.listen(5) # allows 5 unaccepted connections before refusing new ones
 except Exception as bind_error:
   raise SystemExit(f"Could not bind server on: {args.host} on port {args.port}.  Error: {bind_error}")
