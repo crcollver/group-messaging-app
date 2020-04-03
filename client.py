@@ -22,19 +22,18 @@ parser.add_argument('--port', metavar = 'port', type = int, nargs = '?', default
 args = parser.parse_args()
 
 print(f"Connecting to server: {args.host} on port {args.port}")
-
 try:
   clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
   clientSocket.connect((args.host, args.port))
 except Exception as connect_error:
   raise SystemExit(f"Failed to connect to host: {args.host} on port: {args.port}.  Error: {connect_error}")
 
-Print("Select a Username!")
 while True: #Allows user to assign their username to the server. ensuring no duplicates.
-    msg=input()
+    msg=input("Select a Username!")
     clientSocket.sendall(msg.encode("utf-8"))
-    server_msg=clientSocket.recv(1024)
-    if (server_msg.decode() == "False") # Might use this later distutils.util.strtobool(server_msg.decode())- this should intepret the string as a bool.
+    server_msg=clientSocket.recv(1024)  #sending potential username to server.
+
+    if (server_msg.decode() == "False") :# Might use distutils.util.strtobool(server_msg.decode())- this should intepret the string as a bool.
         print ("Great this username is available.\n "+msg+" will be your username for this session.")
         break
     print("The username "+msg+" seems to be taken, lets try again.")
