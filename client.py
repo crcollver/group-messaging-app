@@ -16,7 +16,8 @@ import argparse # CLI parsing module
 parser = argparse.ArgumentParser(description = "Client for chat server.")
 
 # first argument is --host, expecting 0 or 1 string arguments
-parser.add_argument('--host', metavar = 'host', type = str, nargs = '?', default = "localhost")
+# default gets the network IP of machine you are currently running on
+parser.add_argument('--host', metavar = 'host', type = str, nargs = '?', default = socket.gethostbyname(socket.gethostname()))
 # second argument is --port, expecting 0 or 1 integer arguments
 parser.add_argument('--port', metavar = 'port', type = int, nargs = '?', default = 12000)
 args = parser.parse_args()
