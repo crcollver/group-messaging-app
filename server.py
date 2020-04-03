@@ -14,7 +14,6 @@
 import socket
 import argparse # CLI parsing module
 import threading
-
 # Allows us to run our server with host & port arguments
 parser = argparse.ArgumentParser(description = "Multi-threaded server")
 
@@ -54,27 +53,30 @@ def new_client(client, connection, userName):
     if(msg.decode() == "exit"):
       break
     print(f"Client's message: {msg.decode()}")
-    reply = f"Server received: {msg.decode()}"
+    reply = f"Server received from {userName}:  {msg.decode()}"
     client.sendall(reply.encode("utf-8"))
   print(f"Client from: {ip} with port {port} has disconnected.")
   client.close()
 
-while True:
+
+userName= ["Admin"] # Creates an active list of usernames being used. Adds "Admin" by default to prevent use of it.
+while True: #checks client username suggestion against list of active userNames.
   try:
     client, ip = serverSocket.accept()
-    print("connection recieved, assigning username")
+    print("connection recieved, assigning username\n")
     while True:
         msg = client.recv(1024)
-        if msg.decode() in userName
+        if msg.decode() in userName:
             msg = "True"
             client.sendall(msg.encode())
-        else
-            userName = msg.decode()
+        else:
+            userName.insert(0,msg.decode())
+            print("username "+msg.decode()+" is being assigned.")
             msg = "False"
             client.sendall(msg.encode())
-
             break
-    threading._start_new_thread(new_client, (client, ip, userName))
+
+    threading._start_new_thread(new_client, (client, ip, userName[0]))
   except KeyboardInterrupt:
     print("Cleaning up threads and shutting down")
     break
