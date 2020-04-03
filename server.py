@@ -37,7 +37,7 @@ except Exception as bind_error:
   raise SystemExit(f"Could not bind server on: {args.host} on port {args.port}.  Error: {bind_error}")
 
 
-def new_client(client, connection):
+def new_client(client, connection, userName):
   """
   Handle new client.  Closes connection if client types "exit".
 
@@ -62,7 +62,19 @@ def new_client(client, connection):
 while True:
   try:
     client, ip = serverSocket.accept()
-    threading._start_new_thread(new_client, (client, ip))
+    print("connection recieved, assigning username")
+    while True:
+        msg = client.recv(1024)
+        if msg.decode() in userName
+            msg = "True"
+            client.sendall(msg.encode())
+        else
+            userName = msg.decode()
+            msg = "False"
+            client.sendall(msg.encode())
+
+            break
+    threading._start_new_thread(new_client, (client, ip, userName))
   except KeyboardInterrupt:
     print("Cleaning up threads and shutting down")
     break

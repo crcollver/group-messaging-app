@@ -29,10 +29,20 @@ try:
 except Exception as connect_error:
   raise SystemExit(f"Failed to connect to host: {args.host} on port: {args.port}.  Error: {connect_error}")
 
+Print("Select a Username!")
+while True: #Allows user to assign their username to the server. ensuring no duplicates.
+    msg=input()
+    clientSocket.sendall(msg.encode("utf-8"))
+    server_msg=clientSocket.recv(1024)
+    if (server_msg.decode() == "False") # Might use this later distutils.util.strtobool(server_msg.decode())- this should intepret the string as a bool.
+        print ("Great this username is available.\n "+msg+" will be your username for this session.")
+        break
+    print("The username "+msg+" seems to be taken, lets try again.")
+
 while True:
   msg = input("Send to the server: ")
   clientSocket.sendall(msg.encode("utf-8")) # allows for all types of unicode characters to be sent
-  
+
   # if user wants to exit
   if(msg == "exit"):
     print("Goodbye")
@@ -42,4 +52,3 @@ while True:
   print(f"Server response: {server_msg.decode()}")
 
 clientSocket.close()
-  
