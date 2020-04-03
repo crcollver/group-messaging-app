@@ -14,12 +14,8 @@
 import socket
 import argparse # CLI parsing module
 import threading
-<<<<<<< HEAD
-# Allows us to run our server with host & port arguments
-=======
 
 # Allows us to run our server with port arguments
->>>>>>> d46c8db2b61dc182508bb757c201ebcb5a5c6031
 parser = argparse.ArgumentParser(description = "Multi-threaded server")
 
 # argument is --port, expecting 0 or 1 integer arguments
