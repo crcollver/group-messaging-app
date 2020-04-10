@@ -35,8 +35,29 @@ try:
 except Exception as bind_error:
   raise SystemExit(f"Could not bind server on: {args.host} on port {args.port}.  Error: {bind_error}")
 
+usernames= {} # dictionary of client socket object, username pairs for easy removal during a disconnect
+              # client socket object should never change for username's duration, allowing us to use it as a key
+connections = [] # list of active connections
 
-def new_client(client, connection, userName):
+
+
+def accept_connections():
+  """Handling thread for accepting incoming client connections"""
+  while True:
+    client, ip = serverSocket.accept()
+    
+    try:
+      # uses another daemon thread for client connections for easy server clean up
+      connections.append(client)
+      CLIENT_THREAD = threading.Thread(target=new_client, args=(client, ip))
+      CLIENT_THREAD.daemon = True
+      CLIENT_THREAD.start()
+    except Exception as thread_error:
+      print(f"Error creating thread: {thread_error}")
+
+
+
+def new_client(client, connection):
   """
   Handle new client.  Closes connection if client types "exit".
 
@@ -46,41 +67,55 @@ def new_client(client, connection, userName):
   """
   ip = connection[0]
   port = connection[1]
-  print(f"New connection made from: {ip} with {port}")
+  print(f"New connection made from {ip}:{port}, assigning username...")
 
+  # handles username selection and adds it to list of usernames
   while True:
     msg = client.recv(1024)
+    if not msg:
+      break
+    if msg.decode() in usernames:
+      msg = "username_taken"
+      client.sendall(msg.encode())
+    else:
+      usernames[client] = msg.decode()
+      print("Username " + msg.decode() + " is being assigned.")
+      msg = "username_avail"
+      client.sendall(msg.encode("utf-8"))
+      break
+  
+  # handles message sending and echoing
+  while True:
+    msg = client.recv(1024)
+    if not msg:
+      break
     if(msg.decode() == "exit"):
       break
-    print(f"Client's message: {msg.decode()}")
-    reply = f"Server received from {userName}:  {msg.decode()}"
+    print(f"{usernames[client]}: {msg.decode()}")
+    reply = f"Server received from {usernames[client]}:  {msg.decode()}"
     client.sendall(reply.encode("utf-8"))
+
   print(f"Client from: {ip} with port {port} has disconnected.")
+  del usernames[client]
   client.close()
 
 
-userName= ["Admin"] # Creates an active list of usernames being used. Adds "Admin" by default to prevent use of it.
-while True: #checks client username suggestion against list of active userNames.
-  try:
-    client, ip = serverSocket.accept()
-    print("connection recieved, assigning username\n")
-    while True:
-        msg = client.recv(1024)
-        if msg.decode() in userName:
-            msg = "True"
-            client.sendall(msg.encode())
-        else:
-            userName.insert(0,msg.decode())
-            print("username "+msg.decode()+" is being assigned.")
-            msg = "False"
-            client.sendall(msg.encode())
-            break
 
-    threading._start_new_thread(new_client, (client, ip, userName[0]))
-  except KeyboardInterrupt:
-    print("Cleaning up threads and shutting down")
-    break
-  except Exception as thread_error:
-    print(f"Error creating thread: {thread_error}")
+""" Main Thread that allows for interruption  """
+try:
+  # create a Daemon thread for easy server exit
+  # we are not writing to any system files, so resources should be freed immediately
+  SOCKET_ACCEPT_THREAD = threading.Thread(target=accept_connections)
+  SOCKET_ACCEPT_THREAD.daemon = True
+  SOCKET_ACCEPT_THREAD.start()
+
+  # spin until interrupted (^C)
+  while True:
+    pass
+
+except KeyboardInterrupt:
+  print("Cleaning up threads and shutting down")
+except Exception as thread_error:
+  print(f"Error creating thread: {thread_error}")
 
 serverSocket.close()
