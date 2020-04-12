@@ -24,7 +24,7 @@ args = parser.parse_args()
 
 host_ip = socket.gethostbyname(socket.gethostname()) # gets network IP of localhost so others can connect
 
-print(f"Running server on: {host_ip} on port {args.port}")
+print(f"Running server on {host_ip}:{args.port}")
 
 serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # eliminates error when server is ran again immediately after a close
@@ -33,7 +33,7 @@ try:
   serverSocket.bind(("", args.port))
   serverSocket.listen(5) # allows 5 unaccepted connections before refusing new ones
 except Exception as bind_error:
-  raise SystemExit(f"Could not bind server on: {args.host} on port {args.port}.  Error: {bind_error}")
+  raise SystemExit(f"Could not bind server on {args.host}:{args.port}.  Error: {bind_error}")
 
 usernames= {} # dictionary of client socket object, username pairs for easy removal during a disconnect
               # client socket object should never change for username's duration, allowing us to use it as a key
@@ -45,9 +45,8 @@ def accept_connections():
   """Handling thread for accepting incoming client connections"""
   while True:
     client, ip = serverSocket.accept()
-    
     try:
-      # uses another daemon thread for client connections for easy server clean up
+      # uses another daemon thread for client connections for easy server termination
       connections.append(client)
       CLIENT_THREAD = threading.Thread(target=new_client, args=(client, ip))
       CLIENT_THREAD.daemon = True
@@ -56,8 +55,7 @@ def accept_connections():
       print(f"Error creating thread: {thread_error}")
 
 
-
-def new_client(client, connection):
+def new_client(client, info):
   """
   Handle new client.  Closes connection if client types "exit".
 
@@ -65,8 +63,8 @@ def new_client(client, connection):
   client -- socket object for a new client
   connection -- address information for new client (ip, port)
   """
-  ip = connection[0]
-  port = connection[1]
+  ip = info[0]
+  port = info[1]
   print(f"New connection made from {ip}:{port}, assigning username...")
 
   # handles username selection and adds it to list of usernames
@@ -95,7 +93,7 @@ def new_client(client, connection):
     reply = f"Server received from {usernames[client]}:  {msg.decode()}"
     client.sendall(reply.encode("utf-8"))
 
-  print(f"Client from: {ip} with port {port} has disconnected.")
+  print(f"Client from {ip}:{port} has disconnected.")
   del usernames[client]
   client.close()
 
