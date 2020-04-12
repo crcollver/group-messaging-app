@@ -9,8 +9,8 @@ Anonymous group messaging for use inside of your own network.
 ## Completed
 1. Shutdown using ^C
 2. Better threading for server.py and client.py
-  client.py has a thread dedicated to receiving messages
-  server.py has a thread dedicated to accepting clients
+* client.py has a thread dedicated to receiving messages
+* server.py has a thread dedicated to accepting clients
 
 ## prompt_toolkit
 We now use prompt_toolkit for moving the cursor down when client.py receives a message.
