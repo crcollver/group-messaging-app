@@ -47,7 +47,6 @@ def accept_connections():
     client, ip = serverSocket.accept()
     try:
       # uses another daemon thread for client connections for easy server termination
-      connections.append(client)
       CLIENT_THREAD = threading.Thread(target=new_client, args=(client, ip))
       CLIENT_THREAD.daemon = True
       CLIENT_THREAD.start()
@@ -80,6 +79,11 @@ def new_client(client, info):
       print("Username " + msg.decode() + " is being assigned.")
       msg = "username_avail"
       client.sendall(msg.encode("utf-8"))
+
+      if connections:
+        for connection in connections:
+          connection.sendall(f"<@{usernames[client]}> has joined the server!".encode("utf-8"))
+      connections.append(client)
       break
   
   # handles message sending and echoing
@@ -93,7 +97,11 @@ def new_client(client, info):
     reply = f"Server received from {usernames[client]}:  {msg.decode()}"
     client.sendall(reply.encode("utf-8"))
 
-  print(f"Client from {ip}:{port} has disconnected.")
+  print(f"Client from {ip}:{port} with username {usernames[client]} has disconnected.")
+  connections.remove(client)
+  if connections:
+        for connection in connections:
+          connection.sendall(f"<@{usernames[client]}> has left the server, bye!".encode("utf-8"))
   del usernames[client]
   client.close()
 
