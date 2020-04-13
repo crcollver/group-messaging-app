@@ -10,8 +10,8 @@ Anonymous group messaging for use inside of your own network.
 ## Completed
 1. Shutdown using ^C
 2. Better threading for server.py and client.py
-   client.py has a thread dedicated to receiving messages
-   server.py has a thread dedicated to accepting clients
+* client.py has a thread dedicated to receiving messages
+* server.py has a thread dedicated to accepting clients
 3. Send to all users that someone has connected/disconnected.
 
 ## prompt_toolkit
