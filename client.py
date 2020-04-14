@@ -56,7 +56,7 @@ while True:
   try:
     # In case we plan to have output print above this prompt
     with patch_stdout():
-      msg = prompt("Select a username\n>")
+      msg = prompt('Select a username\n>')
     clientSocket.sendall(msg.encode("utf-8"))
     server_res = clientSocket.recv(1024)  #sending potential username to server.
 

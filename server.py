@@ -14,6 +14,8 @@
 import socket
 import argparse # CLI parsing module
 import threading
+from prompt_toolkit import prompt
+from prompt_toolkit.patch_stdout import patch_stdout
 
 # Allows us to run our server with port arguments
 parser = argparse.ArgumentParser(description = "Multi-threaded server")
@@ -93,9 +95,11 @@ def new_client(client, info):
       break
     if(msg.decode() == "exit"):
       break
-    print(f"{usernames[client]}: {msg.decode()}")
-    reply = f"Server received from {usernames[client]}:  {msg.decode()}"
-    client.sendall(reply.encode("utf-8"))
+    #print(f"{usernames[client]}: {msg.decode()}")
+    reply = f"{msg.decode()}"
+    #client.sendall(reply.encode("utf-8"))
+    for connection in connections:
+        connection.sendall(f"<@{usernames[client]}>: {reply}".encode("utf-8"))
 
   print(f"Client from {ip}:{port} with username {usernames[client]} has disconnected.")
   connections.remove(client)
@@ -104,7 +108,6 @@ def new_client(client, info):
           connection.sendall(f"<@{usernames[client]}> has left the server, bye!".encode("utf-8"))
   del usernames[client]
   client.close()
-
 
 
 """ Main Thread that allows for interruption  """
