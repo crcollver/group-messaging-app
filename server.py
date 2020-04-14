@@ -42,7 +42,6 @@ usernames= {} # dictionary of client socket object, username pairs for easy remo
 connections = [] # list of active connections
 
 
-
 def accept_connections():
   """Handling thread for accepting incoming client connections"""
   while True:
@@ -95,17 +94,17 @@ def new_client(client, info):
       break
     if(msg.decode() == "exit"):
       break
-    #print(f"{usernames[client]}: {msg.decode()}")
-    reply = f"{msg.decode()}"
-    #client.sendall(reply.encode("utf-8"))
+    reply = msg.decode()
+    # print(f"<@{usernames[client]}>: {reply}")
     for connection in connections:
+      if connection != client:  # Do not send the message to the client that sent it
         connection.sendall(f"<@{usernames[client]}>: {reply}".encode("utf-8"))
 
   print(f"Client from {ip}:{port} with username {usernames[client]} has disconnected.")
   connections.remove(client)
   if connections:
-        for connection in connections:
-          connection.sendall(f"<@{usernames[client]}> has left the server, bye!".encode("utf-8"))
+    for connection in connections:
+      connection.sendall(f"<@{usernames[client]}> has left the server, bye!".encode("utf-8"))
   del usernames[client]
   client.close()
 
@@ -118,12 +117,12 @@ try:
   SOCKET_ACCEPT_THREAD.daemon = True
   SOCKET_ACCEPT_THREAD.start()
 
-  # spin until interrupted (^C)
+  # spin until interrupted (^C) or "exit" command is given
   while True:
     pass
 
 except KeyboardInterrupt:
-  print("Cleaning up threads and shutting down")
+  print("Cleaning up threads and shutting down...")
 except Exception as thread_error:
   print(f"Error creating thread: {thread_error}")
 
