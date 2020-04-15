@@ -86,7 +86,7 @@ def new_client(client, info):
           connection.sendall(f"<@{usernames[client]}> has joined the server!".encode("utf-8"))
       connections.append(client)
       break
-  
+
   # handles message sending and echoing
   while True:
     msg = client.recv(1024)
@@ -96,6 +96,16 @@ def new_client(client, info):
       break
     reply = msg.decode()
     # print(f"<@{usernames[client]}>: {reply}")
+
+    #parses if @ symbol is used to DM a specified user. Places target username in var target.
+    if msg.decode().startswith("@"):
+        target = msg.decode()[1:msg.decode().find(" ")]
+        #sends message to person who has this username if they exist. Not effecient, but works.
+        for connection in connections:
+            if usernames[connection] == target:
+                connection.sendall(f"<@{usernames[client]}>: {reply}".encode("utf-8"))
+        continue
+
     for connection in connections:
       if connection != client:  # Do not send the message to the client that sent it
         connection.sendall(f"<@{usernames[client]}>: {reply}".encode("utf-8"))
