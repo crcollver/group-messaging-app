@@ -9,6 +9,7 @@
 # https://www.tutorialspoint.com/socket-programming-with-multi-threading-in-python
 #---------------------------------------------------
 
+from __future__ import unicode_literals
 import socket
 import argparse # CLI parsing module
 import threading
@@ -25,6 +26,8 @@ parser.add_argument('--host', metavar = 'host', type = str, nargs = '?', default
 parser.add_argument('--port', metavar = 'port', type = int, nargs = '?', default = 12000)
 args = parser.parse_args()
 
+unexpected_shutdown = False
+
 """ Connect to specified server based on runtime arguments """
 print(f"Connecting to server at {args.host}:{args.port}")
 try:
@@ -39,14 +42,15 @@ def receive_message():
   while True:
     try:
       server_msg = clientSocket.recv(1024)
-      print(f"{server_msg.decode()}")
+      print(server_msg.decode())
       if not server_msg:
         break
     # throws this error when server shuts down with clients still connected
     except ConnectionResetError:
       print(f"Server on {args.host}:{args.port} has shutdown unexpectedly, type 'exit' to exit or close your terminal window.")
+      unexpected_shutdown = True
       break
-    # throws this error when user types exit
+    # throws this error when user types exit, suppresses it
     except ConnectionAbortedError:
       break
 
@@ -56,7 +60,7 @@ while True:
   try:
     # In case we plan to have output print above this prompt
     with patch_stdout():
-      username = prompt('Select a username\n>')
+      username = prompt('Select a username\n>@')
     clientSocket.sendall(username.encode("utf-8"))
     server_res = clientSocket.recv(1024)  #sending potential username to server.
 
@@ -93,8 +97,9 @@ while True:
     break
   except KeyboardInterrupt:
     # if user wants to exit using ^C
-    clientSocket.sendall("exit".encode("utf-8"))
-    print(f"Disconnecting from {args.host}:{args.port}.")
+    if not unexpected_shutdown:
+      clientSocket.sendall("exit".encode("utf-8"))
+      print(f"Disconnecting from {args.host}:{args.port}.")
     break
 
 clientSocket.close()

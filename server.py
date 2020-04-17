@@ -97,21 +97,27 @@ def new_client(client, info):
       break
     if(msg.decode() == "exit"):
       break
+    
     reply = msg.decode()
-    # print(f"<@{usernames[client]}>: {reply}")
+    # parses if @ symbol is used to DM a specified user. Places target username in var target.
+    if reply.startswith("@"):
+      user_found = False   # flag for if specified user is found
+      reply_list = reply.split(" ")
+      target = reply_list[0][1:]
+      reply = " ".join(reply_list[1:]) # Remove the @'d user from beginning of message
 
-    #parses if @ symbol is used to DM a specified user. Places target username in var target.
-    if msg.decode().startswith("@"):
-        target = msg.decode()[1:msg.decode().find(" ")]
-        #sends message to person who has this username if they exist. Not effecient, but works.
-        for connection in connections:
-            if usernames[connection] == target:
-                connection.sendall(f"<@{usernames[client]}>: {reply}".encode("utf-8"))
-        continue
-
-    for connection in connections:
-      if connection != client:  # Do not send the message to the client that sent it
-        connection.sendall(f"<@{usernames[client]}>: {reply}".encode("utf-8"))
+      # sends message to person who has this username if they exist
+      for connection in connections:
+        if usernames[connection] == target:
+          connection.sendall(f"From <@{usernames[client]}> to you: {reply}".encode("utf-8"))
+          user_found = True
+      if not user_found:
+        client.sendall(f"The specified user <@{target}> was not found.".encode("utf-8"))
+         
+    else:
+      for connection in connections:
+        if connection != client:  # Do not send the message to the client that sent it
+          connection.sendall(f"<@{usernames[client]}>: {reply}".encode("utf-8"))
 
   print(f"Client from {ip}:{port} with username {usernames[client]} has disconnected.")
   connections.remove(client)
