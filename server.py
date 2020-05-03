@@ -68,12 +68,14 @@ def new_client(client, info):
   """
   ip = info[0]
   port = info[1]
+  username_exit = False
   print(f"New connection made from {ip}:{port}, assigning username...")
 
   # handles username selection and adds it to list of usernames
   while True:
     msg = client.recv(1024)
-    if not msg:
+    if not msg or msg.decode() == "exit":
+      username_exit = True
       break
     if msg.decode() in usernames.values():
       msg = "username_taken"
@@ -91,7 +93,7 @@ def new_client(client, info):
       break
 
   # handles message sending and echoing
-  while True:
+  while True and not username_exit:
     msg = client.recv(1024)
     if not msg:
       break
@@ -119,12 +121,15 @@ def new_client(client, info):
         if connection != client:  # Do not send the message to the client that sent it
           connection.sendall(f"<@{usernames[client]}>: {reply}".encode("utf-8"))
 
-  print(f"Client from {ip}:{port} with username {usernames[client]} has disconnected.")
-  connections.remove(client)
-  if connections:
-    for connection in connections:
-      connection.sendall(f"<@{usernames[client]}> has left the server, bye!".encode("utf-8"))
-  del usernames[client]
+  if not username_exit:
+    connections.remove(client)
+    print(f"Client from {ip}:{port} with username {usernames[client]} has disconnected.")
+    if connections:
+      for connection in connections:
+        connection.sendall(f"<@{usernames[client]}> has left the server, bye!".encode("utf-8"))
+    del usernames[client]
+  else:
+    print(f"Client from {ip}:{port} has disconnected without assigning username.")
   client.close()
 
 
