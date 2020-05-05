@@ -64,7 +64,6 @@ while True:
     server_res = clientSocket.recv(1024)  #sending potential username to server.
 
     # checking for byte message that server sent back should be fine for our app
-    print(server_res)
     if (server_res.decode() == "username_avail") :  # Might use distutils.util.strtobool(server_msg.decode())- this should intepret the string as a bool.
       print (f"Great this username is available!\n<@{username}> will be your username for this session.")
       break
