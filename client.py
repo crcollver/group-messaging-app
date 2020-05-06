@@ -9,13 +9,18 @@
 # https://www.tutorialspoint.com/socket-programming-with-multi-threading-in-python
 #---------------------------------------------------
 
-from __future__ import unicode_literals
+
+import os
 import socket
 import argparse # CLI parsing module
 import threading
 from prompt_toolkit import prompt
 from prompt_toolkit.patch_stdout import patch_stdout
 
+
+#Cache to allow for disguise screen wipe.
+discache= ""
+Hflag = False
 # Allows for us to run our client with host & port arguments
 parser = argparse.ArgumentParser(description = "Client for chat server.")
 
@@ -38,11 +43,15 @@ except Exception as connect_error:
 
 
 def receive_message():
+  global discache
+  global Hflag
   """ Handles the receiving of server messages, without blocking main thread """
   while True:
     try:
       server_msg = clientSocket.recv(1024)
-      print(server_msg.decode())
+      if Hflag == False:
+        print(f"{server_msg.decode()}")
+      discache =discache + server_msg.decode() + "\n"
       if not server_msg:
         break
     # throws this error when server shuts down with clients still connected
@@ -85,8 +94,24 @@ while True:
   try:
     # Print statements in RECEIVE_THREAD should not disturb input of client
     with patch_stdout():
-      msg = prompt(f"<@{username}>: ")
-    clientSocket.sendall(msg.encode("utf-8")) # allows for all types of unicode characters to be sent
+        msg = prompt(f"<@{username}>: ")
+    #Checks if HIDE command is sent. if not caches message for later use when hiding.
+    if msg == "HIDE":
+      Hflag = True
+      os.system("CLS")
+      f = open("Junk Code.txt","r")
+      print(f.read())
+      f.close()
+      while Hflag :
+        if input() == "SHOW":
+          os.system("CLS")
+          print(discache)
+          Hflag = False
+    else :
+      discache = discache + f"<@{username}>: " +msg +"\n"
+    #end of disguise
+    if msg !="HIDE":
+     clientSocket.sendall(msg.encode("utf-8")) # allows for all types of unicode characters to be sent
 
     # if user wants to exit with command
     if(msg == "exit"):
