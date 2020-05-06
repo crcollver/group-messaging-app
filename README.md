@@ -5,7 +5,6 @@ Anonymous group messaging for use inside of your own network.
 ## Todo
 
 - There may be some bugs as some of this hasn't been thoroughly tested yet.
-- Keybind to switch to random Python code without disrupting connection.
 
 ## Completed
 
@@ -18,6 +17,7 @@ Anonymous group messaging for use inside of your own network.
 3. Send to all users that someone has connected/disconnected.
 4. Echo a message to all users connected.
 5. Separate version of the app with Tkinter GUI for client.py and/or server.py
+6. Keybind to switch to random Python code without disrupting connection. Use HIDE/SHOW command in prompt.
 
 ## prompt_toolkit
 
