@@ -9,6 +9,7 @@
 # https://www.tutorialspoint.com/socket-programming-with-multi-threading-in-python
 #---------------------------------------------------
 
+
 import os
 import socket
 import argparse # CLI parsing module
@@ -29,6 +30,8 @@ parser.add_argument('--host', metavar = 'host', type = str, nargs = '?', default
 # second argument is --port, expecting 0 or 1 integer arguments
 parser.add_argument('--port', metavar = 'port', type = int, nargs = '?', default = 12000)
 args = parser.parse_args()
+
+unexpected_shutdown = False
 
 """ Connect to specified server based on runtime arguments """
 print(f"Connecting to server at {args.host}:{args.port}")
@@ -54,8 +57,9 @@ def receive_message():
     # throws this error when server shuts down with clients still connected
     except ConnectionResetError:
       print(f"Server on {args.host}:{args.port} has shutdown unexpectedly, type 'exit' to exit or close your terminal window.")
+      unexpected_shutdown = True
       break
-    # throws this error when user types exit
+    # throws this error when user types exit, suppresses it
     except ConnectionAbortedError:
       break
 
@@ -64,15 +68,14 @@ def receive_message():
 while True:
   try:
     # In case we plan to have output print above this prompt
-    with patch_stdout():
-      username = prompt('Select a username\n>')
+    username = input('Select a username\n>@')
     clientSocket.sendall(username.encode("utf-8"))
     server_res = clientSocket.recv(1024)  #sending potential username to server.
 
     # checking for byte message that server sent back should be fine for our app
     if (server_res.decode() == "username_avail") :  # Might use distutils.util.strtobool(server_msg.decode())- this should intepret the string as a bool.
-        print (f"Great this username is available.\n<@{username}> will be your username for this session.")
-        break
+      print (f"Great this username is available!\n<@{username}> will be your username for this session.")
+      break
     print(f"The username {username} seems to be taken, lets try again.")
   except ConnectionAbortedError:
     print(f"Server on {args.host}:{args.port} has shutdown unexpectedly, type 'exit' to exit or close your terminal window.")
@@ -118,8 +121,9 @@ while True:
     break
   except KeyboardInterrupt:
     # if user wants to exit using ^C
-    clientSocket.sendall("exit".encode("utf-8"))
-    print(f"Disconnecting from {args.host}:{args.port}.")
+    if not unexpected_shutdown:
+      clientSocket.sendall("exit".encode("utf-8"))
+      print(f"Disconnecting from {args.host}:{args.port}.")
     break
 
 clientSocket.close()
